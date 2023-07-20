@@ -13,7 +13,7 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='$', intents=intents)
 
 @bot.command()
-async def merge(ctx, channel1: discord.TextChannel, channel2: discord.TextChannel):
+async def merge(ctx, *channels: discord.TextChannel):
     overwrites = {
         ctx.guild.default_role: PermissionOverwrite(read_messages=False),
         ctx.author: PermissionOverwrite(read_messages=True),
@@ -21,12 +21,12 @@ async def merge(ctx, channel1: discord.TextChannel, channel2: discord.TextChanne
     }
 
     new_channel = await ctx.guild.create_text_channel(
-        f'merged-{channel1.name}-{channel2.name}', 
+        'merged-' + '-'.join(channel.name for channel in channels), 
         overwrites=overwrites
     )
 
     messages = []
-    for channel in [channel1, channel2]:
+    for channel in channels:
         async for message in channel.history(oldest_first=True):
             content = f"{message.author.name} at {message.created_at} said:\n{message.content}"
             files = await process_attachments(message.attachments)
